@@ -25,8 +25,41 @@ library(dplyr)
 ```{r, echo=TRUE}
 
 GroupByDay <- group_by(activity, date)
-MeanTotalStepsPerDay<- summarize(GroupByDay, MeanSteps = mean(steps, na.rm = TRUE))
+TotalStepsPerDay<- summarize(GroupByDay, TotalSteps = sum(steps, na.rm = TRUE))
+hist(TotalStepsPerDay$TotalSteps)
+mean(TotalStepsPerDay$TotalSteps)
+median(TotalStepsPerDay$TotalSteps)
+```
+
+2. What is the daily activity pattern
+```{r, echo=TRUE}
+
+GroupByInterval <- group_by(activity, interval)
+
+## Plot average steps by time interval
+AvgStepsByInterval<- summarize(GroupByInterval, AvgSteps = mean(steps, na.rm = TRUE))
+plot(AvgStepsByInterval$interval, AvgStepsByInterval$AvgSteps, type="l", xlab = "5 minute daily interval", ylab = "Average Steps")
+
+## Display interval with the average maximum steps
+filter(AvgStepsByInterval, AvgSteps == max(AvgStepsByInterval$AvgSteps))
 
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+3. Imputing missing values
+```{r, echo=TRUE}
+
+## Count of number of NAs in teh dataset
+sum(is.na(activity$steps))
+
+## Crate a dataset and fill teh missing values with average for the interval
+## Use the average step calculate in question 2 
+actvityWithMean <- inner_join(activity, AvgStepsByInterval, by = NULL)
+actvityWithMean$steps[is.na(actvityWithMean$steps)] <- actvityWithMean$AvgSteps
+
+GroupByDayNoNA <- group_by(actvityWithMean, date)
+TotalStepsPerDayNoNA<- summarize(GroupByDayNoNA, TotalSteps = sum(steps, na.rm = TRUE))
+hist(TotalStepsPerDayNoNA$TotalSteps)
+mean(TotalStepsPerDayNoNA$TotalSteps)
+median(TotalStepsPerDayNoNA$TotalSteps)
+
+```
